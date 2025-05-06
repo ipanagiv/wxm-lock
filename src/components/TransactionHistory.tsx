@@ -14,144 +14,167 @@ interface Transaction {
   unlockRequestTime?: number;
 }
 
+const ARBISCAN_API_KEY = 'ECH5FWXFAABMP5VJUHB3KK1EIB5D4P5DVW';
+const CONTRACT_ADDRESS = '0x92917c188B20EA26408E8F249D46BEe490f01d83';
+const RATE_LIMIT_DELAY = 200; // 200ms between requests (5 requests per second)
+const COINGECKO_API_KEY = process.env.REACT_APP_COINGECKO_API_KEY;
+
+// Contract ABI for transaction decoding
+const CONTRACT_ABI = [
+  "function lock(uint256 amount)",
+  "function unlock(uint256 amount)",
+  "function requestUnlock(uint256 lockIndex)",
+  "function getLock(address user, uint256 index) view returns (tuple(uint256 amount, uint256 lockTime, uint256 duration, uint256 unlockRequestTime))",
+  "function getTotalLocked() view returns (uint256)"
+];
+
 const TransactionHistory: React.FC = () => {
   const { account, contract } = useWeb3();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [tvl, setTvl] = useState<string>('0');
+  const [tvlUsd, setTvlUsd] = useState<string>('0');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchTvl = async () => {
-      if (!contract) return;
-      try {
-        const totalLocked = await contract.totalLocked();
-        setTvl(ethers.utils.formatEther(totalLocked));
-      } catch (err) {
-        console.error('Error fetching TVL:', err);
-      }
-    };
+  const fetchTvl = async () => {
+    if (!contract) return;
+    try {
+      // Get total locked tokens
+      const totalLocked = await contract.getTotalLocked();
+      const totalLockedFormatted = ethers.utils.formatEther(totalLocked);
+      setTvl(totalLockedFormatted);
 
+      // Get WXM price from CoinGecko
+      const priceResponse = await fetch(
+        `https://pro-api.coingecko.com/api/v3/simple/price?ids=weatherxm&vs_currencies=usd&x_cg_pro_api_key=${COINGECKO_API_KEY}`
+      );
+      const priceData = await priceResponse.json();
+      const wxmPrice = priceData.weatherxm.usd;
+
+      // Calculate TVL in USD
+      const tvlUsdValue = (parseFloat(totalLockedFormatted) * wxmPrice).toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+      setTvlUsd(tvlUsdValue);
+    } catch (err) {
+      console.error('Error fetching TVL:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (!contract) return;
     fetchTvl();
   }, [contract]);
 
   useEffect(() => {
-    if (!contract || !account) return;
+    if (!contract) return;
 
-    const fetchHistoricalTransactions = async () => {
+    const fetchTransactions = async () => {
       try {
-        // Get the last 1000 blocks (about 2 hours on Arbitrum)
-        const currentBlock = await contract.provider.getBlockNumber();
-        const fromBlock = Math.max(0, currentBlock - 1000);
+        // Add delay between API calls
+        const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-        // Fetch all events
-        const [lockEvents, unlockEvents, requestEvents] = await Promise.all([
-          contract.queryFilter(contract.filters.TokensLocked(account), fromBlock, currentBlock),
-          contract.queryFilter(contract.filters.TokensUnlocked(account), fromBlock, currentBlock),
-          contract.queryFilter(contract.filters.UnlockRequested(account), fromBlock, currentBlock)
-        ]);
+        // Fetch all transactions for the contract
+        const txResponse = await fetch(
+          `https://api.arbiscan.io/api?module=account&action=txlist&address=${CONTRACT_ADDRESS}&startblock=0&endblock=99999999&sort=desc&apikey=${ARBISCAN_API_KEY}`
+        );
+        await delay(RATE_LIMIT_DELAY);
+        const txData = await txResponse.json();
+        console.log('Contract transactions:', txData);
 
-        // Process lock events
-        const lockTransactions = await Promise.all(lockEvents.map(async (event) => {
-          const block = await event.getBlock();
-          return {
-            hash: event.transactionHash,
-            type: 'lock' as const,
-            amount: event.args?.amount,
-            timestamp: block.timestamp,
+        // Process transactions in batches to respect rate limit
+        const allTransactions = txData.result;
+
+        console.log('Filtered transactions:', allTransactions);
+
+        const processedTransactions: Transaction[] = [];
+        for (let i = 0; i < allTransactions.length; i++) {
+          const tx = allTransactions[i];
+          
+          let type: 'lock' | 'unlock' | 'request' = 'lock';
+          let amount = ethers.BigNumber.from(tx.value);
+
+          // Try to decode the transaction data to determine the type
+          try {
+            const iface = new ethers.utils.Interface(CONTRACT_ABI);
+            const decoded = iface.parseTransaction({ data: tx.input });
+            console.log('Decoded transaction:', decoded);
+            
+            if (decoded.name === 'unlock') {
+              type = 'unlock';
+            } else if (decoded.name === 'requestUnlock') {
+              type = 'request';
+              // For unlock requests, we need to get the lock amount
+              const lockIndex = decoded.args[0];
+              const lock = await contract.getLock(tx.from, lockIndex);
+              await delay(RATE_LIMIT_DELAY);
+              amount = lock.amount;
+            }
+          } catch (err) {
+            console.error('Error decoding transaction:', err);
+          }
+
+          processedTransactions.push({
+            hash: tx.hash,
+            type,
+            amount,
+            timestamp: parseInt(tx.timeStamp),
             status: 'completed' as const,
-            duration: 30,
-            lockTime: block.timestamp
-          };
-        }));
+            duration: type === 'lock' ? 30 : undefined,
+            lockTime: type === 'lock' ? parseInt(tx.timeStamp) : undefined,
+            unlockRequestTime: type === 'request' ? parseInt(tx.timeStamp) : undefined
+          });
+        }
 
-        // Process unlock events
-        const unlockTransactions = await Promise.all(unlockEvents.map(async (event) => {
-          const block = await event.getBlock();
-          return {
-            hash: event.transactionHash,
-            type: 'unlock' as const,
-            amount: event.args?.amount,
-            timestamp: block.timestamp,
-            status: 'completed' as const
-          };
-        }));
-
-        // Process request events
-        const requestTransactions = await Promise.all(requestEvents.map(async (event) => {
-          const block = await event.getBlock();
-          const lock = await contract.getLock(account, event.args?.lockIndex);
-          return {
-            hash: event.transactionHash,
-            type: 'request' as const,
-            amount: lock.amount,
-            timestamp: block.timestamp,
-            status: 'completed' as const,
-            unlockRequestTime: block.timestamp
-          };
-        }));
-
-        // Combine and sort all transactions by timestamp
-        const allTransactions = [...lockTransactions, ...unlockTransactions, ...requestTransactions]
-          .sort((a, b) => b.timestamp - a.timestamp);
-
-        setTransactions(allTransactions);
+        console.log('Processed transactions:', processedTransactions);
+        setTransactions(processedTransactions.sort((a, b) => b.timestamp - a.timestamp));
         setLoading(false);
       } catch (err) {
-        console.error('Error fetching historical transactions:', err);
+        console.error('Error fetching transactions:', err);
         setLoading(false);
       }
     };
 
-    fetchHistoricalTransactions();
+    fetchTransactions();
 
+    // Event listeners for real-time updates
     const handleTokensLocked = async (user: string, amount: ethers.BigNumber, event: any) => {
-      if (user.toLowerCase() === account.toLowerCase()) {
-        const block = await event.getBlock();
-        const newTransaction: Transaction = {
-          hash: event.transactionHash,
-          type: 'lock',
-          amount,
-          timestamp: block.timestamp,
-          status: 'completed',
-          duration: 30,
-          lockTime: block.timestamp
-        };
-        setTransactions(prev => [newTransaction, ...prev]);
-        const totalLocked = await contract.totalLocked();
-        setTvl(ethers.utils.formatEther(totalLocked));
-      }
+      const newTransaction: Transaction = {
+        hash: event.transactionHash,
+        type: 'lock',
+        amount,
+        timestamp: Math.floor(Date.now() / 1000),
+        status: 'completed' as const,
+        duration: 30,
+        lockTime: Math.floor(Date.now() / 1000)
+      };
+      setTransactions(prev => [newTransaction, ...prev]);
+      await fetchTvl();
     };
 
     const handleTokensUnlocked = async (user: string, amount: ethers.BigNumber, event: any) => {
-      if (user.toLowerCase() === account.toLowerCase()) {
-        const block = await event.getBlock();
-        const newTransaction: Transaction = {
-          hash: event.transactionHash,
-          type: 'unlock',
-          amount,
-          timestamp: block.timestamp,
-          status: 'completed'
-        };
-        setTransactions(prev => [newTransaction, ...prev]);
-        const totalLocked = await contract.totalLocked();
-        setTvl(ethers.utils.formatEther(totalLocked));
-      }
+      const newTransaction: Transaction = {
+        hash: event.transactionHash,
+        type: 'unlock',
+        amount,
+        timestamp: Math.floor(Date.now() / 1000),
+        status: 'completed' as const
+      };
+      setTransactions(prev => [newTransaction, ...prev]);
+      await fetchTvl();
     };
 
     const handleUnlockRequested = async (user: string, lockIndex: ethers.BigNumber, event: any) => {
-      if (user.toLowerCase() === account.toLowerCase()) {
-        const block = await event.getBlock();
-        const lock = await contract.getLock(user, lockIndex);
-        const newTransaction: Transaction = {
-          hash: event.transactionHash,
-          type: 'request',
-          amount: lock.amount,
-          timestamp: block.timestamp,
-          status: 'completed',
-          unlockRequestTime: block.timestamp
-        };
-        setTransactions(prev => [newTransaction, ...prev]);
-      }
+      const lock = await contract.getLock(user, lockIndex);
+      const newTransaction: Transaction = {
+        hash: event.transactionHash,
+        type: 'request',
+        amount: lock.amount,
+        timestamp: Math.floor(Date.now() / 1000),
+        status: 'completed' as const,
+        unlockRequestTime: Math.floor(Date.now() / 1000)
+      };
+      setTransactions(prev => [newTransaction, ...prev]);
     };
 
     contract.on('TokensLocked', handleTokensLocked);
@@ -163,7 +186,7 @@ const TransactionHistory: React.FC = () => {
       contract.off('TokensUnlocked', handleTokensUnlocked);
       contract.off('UnlockRequested', handleUnlockRequested);
     };
-  }, [contract, account]);
+  }, [contract]);
 
   const formatTransactionType = (type: string) => {
     switch (type) {
@@ -227,6 +250,7 @@ const TransactionHistory: React.FC = () => {
           <ArrowTrendingUpIcon className="h-5 w-5 text-green-500" />
           <span className="text-sm text-gray-600">TVL:</span>
           <span className="font-semibold">{tvl} WXM</span>
+          <span className="text-sm text-gray-500">(${tvlUsd})</span>
         </div>
       </div>
 
