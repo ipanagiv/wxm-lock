@@ -28,30 +28,17 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
   const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
-  // Initialize WalletConnect provider
-  const walletConnectProvider = WalletConnectProvider.init({
-    projectId: "a830791decc3dc5a13ee339cccfb30ab",
-    chains: [42161],
-    showQrModal: true
-  });
-
   const web3Modal = new Web3Modal({
     network: "arbitrum",
     cacheProvider: false,
     disableInjectedProvider: false,
     providerOptions: {
       walletconnect: {
-        package: walletConnectProvider,
+        package: WalletConnectProvider,
         options: {
           projectId: "a830791decc3dc5a13ee339cccfb30ab",
           chains: [42161],
-          showQrModal: true,
-          rpc: {
-            42161: "https://arb1.arbitrum.io/rpc"
-          },
-          qrModalOptions: {
-            themeMode: "dark"
-          }
+          showQrModal: true
         }
       }
     },
@@ -60,9 +47,6 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const connectWallet = async () => {
     try {
-      // Clear any existing connection
-      await web3Modal.clearCachedProvider();
-      
       const instance = await web3Modal.connect();
       const provider = new ethers.providers.Web3Provider(instance);
       const signer = provider.getSigner();
@@ -131,17 +115,31 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error instanceof Error) {
         alert(error.message);
       }
-      // Reset state on error
       disconnectWallet();
     }
   };
 
-  const disconnectWallet = () => {
-    web3Modal.clearCachedProvider();
-    setAccount(null);
-    setContract(null);
-    setProvider(null);
-    setIsConnected(false);
+  const disconnectWallet = async () => {
+    try {
+      // Clear Web3Modal cache
+      await web3Modal.clearCachedProvider();
+      
+      // Reset all state
+      setAccount(null);
+      setContract(null);
+      setProvider(null);
+      setIsConnected(false);
+
+      // Force reload the page to clear any remaining state
+      window.location.reload();
+    } catch (error) {
+      console.error("Error disconnecting wallet:", error);
+      // Even if there's an error, try to clear the state
+      setAccount(null);
+      setContract(null);
+      setProvider(null);
+      setIsConnected(false);
+    }
   };
 
   return (
