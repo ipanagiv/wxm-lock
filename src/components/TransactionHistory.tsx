@@ -63,7 +63,7 @@ const TransactionHistory: React.FC = () => {
   const formatUSD = (amount: number | string) => {
     try {
       const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-      if (isNaN(numericAmount)) return '$0.00';
+      if (isNaN(numericAmount) || numericAmount < 0) return '$0.00';
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD',
@@ -79,7 +79,7 @@ const TransactionHistory: React.FC = () => {
   const formatWXM = (amount: string) => {
     try {
       const numericAmount = parseFloat(amount);
-      if (isNaN(numericAmount)) return '0.00';
+      if (isNaN(numericAmount) || numericAmount < 0) return '0.00';
       return new Intl.NumberFormat('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 4
@@ -150,36 +150,44 @@ const TransactionHistory: React.FC = () => {
   };
 
   const calculateTVL = (txs: Transaction[]) => {
-    let totalLocked = ethers.BigNumber.from(0);
-    const processedLocks = new Map<string, boolean>(); // Track processed locks
+    try {
+      let totalLocked = ethers.BigNumber.from(0);
+      const processedLocks = new Map<string, boolean>(); // Track processed locks
 
-    // Process transactions in chronological order
-    const sortedTxs = [...txs].sort((a, b) => a.timestamp - b.timestamp);
+      // Process transactions in chronological order
+      const sortedTxs = [...txs].sort((a, b) => a.timestamp - b.timestamp);
 
-    for (const tx of sortedTxs) {
-      if (tx.type === 'lock') {
-        // Add locked amount
-        totalLocked = totalLocked.add(tx.amount);
-        // Mark this lock as processed
-        processedLocks.set(tx.hash, true);
-      } else if (tx.type === 'unlock') {
-        // Find the corresponding lock transaction
-        const lockTx = sortedTxs.find(t => 
-          t.type === 'lock' && 
-          t.from === tx.from && 
-          !processedLocks.get(t.hash)
-        );
+      for (const tx of sortedTxs) {
+        if (!tx.amount) continue; // Skip if amount is undefined or null
         
-        if (lockTx) {
-          // Subtract unlocked amount
-          totalLocked = totalLocked.sub(lockTx.amount);
-          // Mark the lock as processed
-          processedLocks.set(lockTx.hash, true);
+        if (tx.type === 'lock') {
+          // Add locked amount
+          totalLocked = totalLocked.add(tx.amount);
+          // Mark this lock as processed
+          processedLocks.set(tx.hash, true);
+        } else if (tx.type === 'unlock') {
+          // Find the corresponding lock transaction
+          const lockTx = sortedTxs.find(t => 
+            t.type === 'lock' && 
+            t.from === tx.from && 
+            !processedLocks.get(t.hash) &&
+            t.amount // Ensure lock transaction has an amount
+          );
+          
+          if (lockTx && lockTx.amount) {
+            // Subtract unlocked amount
+            totalLocked = totalLocked.sub(lockTx.amount);
+            // Mark the lock as processed
+            processedLocks.set(lockTx.hash, true);
+          }
         }
       }
-    }
 
-    return totalLocked;
+      return totalLocked;
+    } catch (err) {
+      console.error('Error calculating TVL:', err);
+      return ethers.BigNumber.from(0);
+    }
   };
 
   const fetchTvl = async (txs: Transaction[]) => {
@@ -187,17 +195,26 @@ const TransactionHistory: React.FC = () => {
       // Calculate TVL from transactions
       const totalLocked = calculateTVL(txs);
       const totalLockedFormatted = ethers.utils.formatEther(totalLocked);
-      setTvl(totalLockedFormatted);
+      
+      // Ensure we have a valid number
+      const tvlValue = parseFloat(totalLockedFormatted);
+      if (isNaN(tvlValue)) {
+        setTvl('0');
+      } else {
+        setTvl(totalLockedFormatted);
+      }
 
       // Get WXM price from CoinGecko
       await fetchWxmPrice();
 
-      // Calculate TVL in USD
-      const tvlUsdValue = parseFloat(totalLockedFormatted) * parseFloat(wxmPrice || '0');
-      if (!isNaN(tvlUsdValue)) {
-        setTvlUsd(formatUSD(tvlUsdValue));
-      } else {
+      // Calculate TVL in USD with proper error handling
+      const price = parseFloat(wxmPrice || '0');
+      const tvlUsdValue = tvlValue * price;
+      
+      if (isNaN(tvlUsdValue)) {
         setTvlUsd('0');
+      } else {
+        setTvlUsd(formatUSD(tvlUsdValue));
       }
     } catch (err) {
       console.error('Error fetching TVL:', err);
