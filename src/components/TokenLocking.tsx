@@ -28,9 +28,10 @@ const TokenLocking: React.FC = () => {
           [
             "function balanceOf(address) view returns (uint256)",
             "function decimals() view returns (uint8)",
-            "function symbol() view returns (string)"
+            "function symbol() view returns (string)",
+            "function approve(address spender, uint256 amount) returns (bool)"
           ],
-          contract.provider
+          contract.signer
         );
         setWxmToken(tokenContract);
       } catch (err) {
@@ -81,12 +82,20 @@ const TokenLocking: React.FC = () => {
   }, [isConnected, account]);
 
   const handleLockTokens = async () => {
-    if (!contract || !amount) return;
+    if (!contract || !amount || !wxmToken) return;
     try {
       setLoading(true);
       setError(null);
-      const tx = await contract.lockTokens(ethers.utils.parseEther(amount));
-      await tx.wait();
+
+      // First, approve the contract to spend tokens
+      const amountToLock = ethers.utils.parseEther(amount);
+      const approvalTx = await wxmToken.approve(contract.address, amountToLock);
+      await approvalTx.wait();
+
+      // Then lock the tokens
+      const lockTx = await contract.lockTokens(amountToLock);
+      await lockTx.wait();
+      
       setAmount('');
       await fetchLocks();
       // Refresh balance after locking
@@ -95,9 +104,9 @@ const TokenLocking: React.FC = () => {
         const decimals = await wxmToken.decimals();
         setBalance(ethers.utils.formatUnits(balance, decimals));
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error locking tokens:', err);
-      setError('Failed to lock tokens');
+      setError(err.message || 'Failed to lock tokens');
     } finally {
       setLoading(false);
     }
