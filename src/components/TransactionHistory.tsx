@@ -25,15 +25,10 @@ const PRICE_UPDATE_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 // Get API keys from environment variables
 const ARBISCAN_API_KEY = process.env.REACT_APP_ARBISCAN_API_KEY;
-const COINGECKO_API_KEY = process.env.REACT_APP_COINGECKO_API_KEY;
 
 // Validate API keys
 if (!ARBISCAN_API_KEY) {
   console.error('Arbiscan API key is missing. Please add REACT_APP_ARBISCAN_API_KEY to your .env file');
-}
-
-if (!COINGECKO_API_KEY) {
-  console.error('CoinGecko API key is missing. Please add REACT_APP_COINGECKO_API_KEY to your .env file');
 }
 
 // Contract ABI for transaction decoding
@@ -60,56 +55,82 @@ const TransactionHistory: React.FC = () => {
 
   useEffect(() => {
     // Check for missing API keys on component mount
-    if (!ARBISCAN_API_KEY || !COINGECKO_API_KEY) {
+    if (!ARBISCAN_API_KEY) {
       setApiError('API keys are missing. Please check your .env file configuration.');
     }
   }, []);
 
-  const formatUSD = (amount: number) => {
+  const formatUSD = (amount: number | string) => {
+    const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(amount);
+      maximumFractionDigits: 4
+    }).format(numericAmount);
   };
 
   const formatWXM = (amount: string) => {
     return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+      maximumFractionDigits: 4
     }).format(parseFloat(amount));
   };
 
   const fetchWxmPrice = async () => {
     try {
-      if (!COINGECKO_API_KEY) {
-        throw new Error('CoinGecko API key is missing. Please add REACT_APP_COINGECKO_API_KEY to your .env file');
-      }
-
       setPriceLoading(true);
       setPriceError(null);
       
-      const priceResponse = await fetch(
-        `https://pro-api.coingecko.com/api/v3/simple/price?ids=weatherxm&vs_currencies=usd&x_cg_pro_api_key=${COINGECKO_API_KEY}`
+      // Try CoinGecko first
+      try {
+        const coingeckoResponse = await fetch(
+          'https://api.coingecko.com/api/v3/simple/price?ids=weatherxm&vs_currencies=usd'
+        );
+        
+        if (coingeckoResponse.ok) {
+          const coingeckoData = await coingeckoResponse.json();
+          if (coingeckoData.weatherxm?.usd) {
+            const price = coingeckoData.weatherxm.usd;
+            setWxmPrice(price.toString());
+            setLastPriceUpdate(new Date());
+            return;
+          }
+        }
+      } catch (coingeckoError) {
+        console.log('CoinGecko price fetch failed, trying Arbiscan...');
+      }
+
+      // Fallback to Arbiscan if CoinGecko fails
+      if (!ARBISCAN_API_KEY) {
+        throw new Error('Arbiscan API key is missing');
+      }
+
+      const arbiscanResponse = await fetch(
+        `https://api.arbiscan.io/api?module=stats&action=tokenprice&contractaddress=0x0edf9bc41bbc1354c70e2107f80c42cae7fbbca8&apikey=${ARBISCAN_API_KEY}`
       );
       
-      if (!priceResponse.ok) {
-        throw new Error(`CoinGecko API error: ${priceResponse.statusText}`);
+      if (!arbiscanResponse.ok) {
+        const errorText = await arbiscanResponse.text();
+        throw new Error(`Arbiscan API error: ${arbiscanResponse.status} - ${errorText}`);
       }
 
-      const priceData = await priceResponse.json();
+      const arbiscanData = await arbiscanResponse.json();
       
-      if (!priceData.weatherxm?.usd) {
-        throw new Error('Invalid price data received from CoinGecko');
+      if (arbiscanData.status !== '1' || !arbiscanData.result?.ethusd) {
+        throw new Error('Price data not available from either API');
       }
 
-      const price = priceData.weatherxm.usd;
-      setWxmPrice(price.toString());
+      const price = arbiscanData.result.ethusd;
+      setWxmPrice(price);
       setLastPriceUpdate(new Date());
     } catch (err) {
       console.error('Error fetching WXM price:', err);
       setPriceError(err instanceof Error ? err.message : 'Failed to fetch price');
+      // Keep the last known price if available
+      if (!wxmPrice) {
+        setWxmPrice('0');
+      }
     } finally {
       setPriceLoading(false);
     }
@@ -212,7 +233,7 @@ const TransactionHistory: React.FC = () => {
             const decoded = iface.parseTransaction({ data: tx.input });
             
             let type: 'lock' | 'unlock' | 'request' = 'lock';
-            let amount = ethers.BigNumber.from(tx.value);
+            let amount = ethers.BigNumber.from(0);
 
             if (decoded.name === 'unlockTokens') {
               type = 'unlock';
@@ -225,6 +246,9 @@ const TransactionHistory: React.FC = () => {
                 await delay(RATE_LIMIT_DELAY);
                 amount = lock.amount;
               }
+            } else if (decoded.name === 'lockTokens') {
+              // For lock transactions, get the amount from the decoded input
+              amount = decoded.args[0];
             }
 
             const blockNumber = parseInt(tx.blockNumber);
