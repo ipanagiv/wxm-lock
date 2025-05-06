@@ -61,20 +61,33 @@ const TransactionHistory: React.FC = () => {
   }, []);
 
   const formatUSD = (amount: number | string) => {
-    const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 4
-    }).format(numericAmount);
+    try {
+      const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+      if (isNaN(numericAmount)) return '$0.00';
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 4
+      }).format(numericAmount);
+    } catch (err) {
+      console.error('Error formatting USD amount:', err);
+      return '$0.00';
+    }
   };
 
   const formatWXM = (amount: string) => {
-    return new Intl.NumberFormat('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 4
-    }).format(parseFloat(amount));
+    try {
+      const numericAmount = parseFloat(amount);
+      if (isNaN(numericAmount)) return '0.00';
+      return new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 4
+      }).format(numericAmount);
+    } catch (err) {
+      console.error('Error formatting WXM amount:', err);
+      return '0.00';
+    }
   };
 
   const fetchWxmPrice = async () => {
@@ -180,10 +193,16 @@ const TransactionHistory: React.FC = () => {
       await fetchWxmPrice();
 
       // Calculate TVL in USD
-      const tvlUsdValue = parseFloat(totalLockedFormatted) * parseFloat(wxmPrice);
-      setTvlUsd(formatUSD(tvlUsdValue));
+      const tvlUsdValue = parseFloat(totalLockedFormatted) * parseFloat(wxmPrice || '0');
+      if (!isNaN(tvlUsdValue)) {
+        setTvlUsd(formatUSD(tvlUsdValue));
+      } else {
+        setTvlUsd('0');
+      }
     } catch (err) {
       console.error('Error fetching TVL:', err);
+      setTvl('0');
+      setTvlUsd('0');
     }
   };
 
