@@ -82,16 +82,16 @@ const TransactionHistory: React.FC = () => {
       setPriceLoading(true);
       setPriceError(null);
       
-      // Try CoinGecko first
+      // Try CoinGecko first with the correct token ID
       try {
         const coingeckoResponse = await fetch(
-          'https://api.coingecko.com/api/v3/simple/price?ids=weatherxm&vs_currencies=usd'
+          'https://api.coingecko.com/api/v3/simple/price?ids=weatherxm-network&vs_currencies=usd'
         );
         
         if (coingeckoResponse.ok) {
           const coingeckoData = await coingeckoResponse.json();
-          if (coingeckoData.weatherxm?.usd) {
-            const price = coingeckoData.weatherxm.usd;
+          if (coingeckoData['weatherxm-network']?.usd) {
+            const price = coingeckoData['weatherxm-network'].usd;
             setWxmPrice(price.toString());
             setLastPriceUpdate(new Date());
             return;
