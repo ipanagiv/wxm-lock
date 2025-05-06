@@ -192,30 +192,18 @@ const TransactionHistory: React.FC = () => {
 
   const fetchTvl = async (txs: Transaction[]) => {
     try {
-      // Calculate TVL from transactions
+      // Calculate total WXM locked
       const totalLocked = calculateTVL(txs);
       const totalLockedFormatted = ethers.utils.formatEther(totalLocked);
-      
-      // Ensure we have a valid number
-      const tvlValue = parseFloat(totalLockedFormatted);
-      if (isNaN(tvlValue)) {
-        setTvl('0');
-      } else {
-        setTvl(totalLockedFormatted);
-      }
+      setTvl(totalLockedFormatted);
 
-      // Get WXM price from CoinGecko
+      // Get WXM price
       await fetchWxmPrice();
+      const wxmPriceNum = parseFloat(wxmPrice || '0');
 
-      // Calculate TVL in USD with proper error handling
-      const price = parseFloat(wxmPrice || '0');
-      const tvlUsdValue = tvlValue * price;
-      
-      if (isNaN(tvlUsdValue)) {
-        setTvlUsd('0');
-      } else {
-        setTvlUsd(formatUSD(tvlUsdValue));
-      }
+      // Calculate TVL in USD (WXM amount * WXM price)
+      const tvlUsdValue = parseFloat(totalLockedFormatted) * wxmPriceNum;
+      setTvlUsd(formatUSD(tvlUsdValue));
     } catch (err) {
       console.error('Error fetching TVL:', err);
       setTvl('0');
