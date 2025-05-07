@@ -374,152 +374,85 @@ const TransactionHistory: React.FC = () => {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="bg-white rounded-lg shadow p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold mb-2">Total Value Locked</h2>
-            <div className="text-2xl font-bold">
-              {new Intl.NumberFormat('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-              }).format(parseFloat(tvl))} WXM
-            </div>
-            <div className="text-gray-600">
-              {new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: 'USD',
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-              }).format(parseFloat(tvlUsd))}
-            </div>
+    <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-800">Latest Contract Interactions</h2>
+        <div className="flex items-center space-x-4">
+          <div className="text-right">
+            <p className="text-sm text-gray-600">Total Value Locked</p>
+            <p className="text-xl font-bold text-gray-900">{formatWXM(tvl)} WXM</p>
+            <p className="text-sm text-gray-600">{tvlUsd}</p>
           </div>
-          <div className="flex flex-col items-end space-y-2">
-            <div className="flex items-center space-x-2">
-              <CurrencyDollarIcon className="h-6 w-6 text-green-500" />
-              <div className="flex items-center space-x-2">
-                <span className="text-lg font-semibold">
-                  {new Intl.NumberFormat('en-US', {
-                    style: 'currency',
-                    currency: 'USD',
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                  }).format(parseFloat(wxmPrice))}
-                </span>
-                <button 
-                  onClick={fetchWxmPrice}
-                  disabled={priceLoading}
-                  className={`p-1 rounded-full hover:bg-gray-100 ${priceLoading ? 'animate-spin' : ''}`}
-                >
-                  <ArrowPathIcon className="h-4 w-4 text-gray-500" />
-                </button>
-              </div>
-            </div>
-            {priceError ? (
-              <div className="text-sm text-red-500">{priceError}</div>
-            ) : (
-              <div className="text-sm text-gray-500">
-                Last updated: {lastPriceUpdate.toLocaleTimeString()}
-              </div>
-            )}
+          <div className="text-right">
+            <p className="text-sm text-gray-600">WXM Price</p>
+            <p className="text-xl font-bold text-gray-900">{formatUSD(wxmPrice)}</p>
+            <p className="text-xs text-gray-500">
+              Last updated: {lastPriceUpdate.toLocaleTimeString()}
+            </p>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="p-4 border-b flex justify-between items-center">
-          <h2 className="text-lg font-semibold">Transaction History</h2>
-          <div className="text-sm text-gray-500">
-            Latest Block: {lastBlock.toLocaleString()}
-          </div>
+      {apiError && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+          {apiError}
         </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">From</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Block</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Confirmations</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gas Used</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gas Price</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Links</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {transactions.map((tx) => (
-                <tr key={tx.hash} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getTransactionTypeColor(tx.type)}`}>
+      )}
+
+      {loading ? (
+        <div className="flex justify-center items-center py-8">
+          <ArrowPathIcon className="h-8 w-8 text-blue-500 animate-spin" />
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {transactions.map((tx) => (
+            <div
+              key={tx.hash}
+              className="bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span className={`px-2 py-1 rounded text-sm font-medium ${getTransactionTypeColor(tx.type)}`}>
                       {tx.type.charAt(0).toUpperCase() + tx.type.slice(1)}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {formatWXM(ethers.utils.formatEther(tx.amount))} WXM
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {formatUSD(parseFloat(ethers.utils.formatEther(tx.amount)) * parseFloat(wxmPrice))}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <a 
-                      href={`https://arbiscan.io/address/${tx.from}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 flex items-center"
-                    >
-                      {`${tx.from.slice(0, 6)}...${tx.from.slice(-4)}`}
-                      <ArrowTopRightOnSquareIcon className="h-4 w-4 ml-1" />
-                    </a>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{new Date(tx.timestamp * 1000).toLocaleString()}</div>
-                    <div className="text-xs text-gray-500">{formatTimeAgo(tx.timestamp)}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <a 
-                      href={`https://arbiscan.io/block/${tx.blockNumber}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 flex items-center"
-                    >
-                      {tx.blockNumber.toLocaleString()}
-                      <ArrowTopRightOnSquareIcon className="h-4 w-4 ml-1" />
-                    </a>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      tx.confirmations > 100 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {tx.confirmations.toLocaleString()}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{formatGasUsed(tx.gasUsed)}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{formatGasPrice(tx.gasPrice)}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <a 
+                    <a
                       href={`https://arbiscan.io/tx/${tx.hash}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:text-blue-800 flex items-center"
                     >
-                      View
-                      <ArrowTopRightOnSquareIcon className="h-4 w-4 ml-1" />
+                      <ArrowTopRightOnSquareIcon className="h-4 w-4 mr-1" />
+                      View on Arbiscan
                     </a>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                  <p className="text-gray-600 mt-2">
+                    Amount: {ethers.utils.formatEther(tx.amount)} WXM
+                  </p>
+                  <p className="text-gray-600">
+                    <ClockIcon className="h-4 w-4 inline mr-1" />
+                    {formatTimeAgo(tx.timestamp)}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-gray-600">
+                    Gas Used: {formatGasUsed(tx.gasUsed)}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Gas Price: {formatGasPrice(tx.gasPrice)}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Block: {tx.blockNumber}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+          {transactions.length === 0 && (
+            <p className="text-gray-500 text-center py-4">No transactions found</p>
+          )}
         </div>
-      </div>
+      )}
     </div>
   );
 };
