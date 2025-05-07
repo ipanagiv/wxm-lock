@@ -56,7 +56,7 @@ const WelcomeSection: React.FC = () => {
               <h3 className="text-xl font-semibold text-gray-900">Decentralized Governance</h3>
             </div>
             <p className="text-gray-600">
-              To empower a more decentralized and merit-based governance model, the WeatherXM Association introduces Voting Power (VP) — a mechanism that aligns governance influence with long-term commitment to the network.
+              To empower a more decentralized and merit-based governance model, the <a href="https://weatherxm.network/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">WeatherXM Association</a> introduces Voting Power (VP) — a mechanism that aligns governance influence with long-term commitment to the network.
             </p>
           </div>
 
@@ -127,7 +127,7 @@ const AppContent: React.FC = () => {
               <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">Welcome to WXM Token Locking</h2>
                 <p className="text-gray-600 mb-4">
-                  To empower a more decentralized and merit-based governance model, the WeatherXM Association introduces Voting Power (VP) — a mechanism that aligns governance influence with long-term commitment to the network.
+                  To empower a more decentralized and merit-based governance model, the <a href="https://weatherxm.network/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">WeatherXM Association</a> introduces Voting Power (VP) — a mechanism that aligns governance influence with long-term commitment to the network.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
