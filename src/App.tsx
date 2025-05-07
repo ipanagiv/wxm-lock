@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Web3Provider, useWeb3 } from './context/Web3Context';
 import TokenLocking from './components/TokenLocking';
 import TransactionHistory from './components/TransactionHistory';
@@ -150,6 +150,11 @@ const WalletButton: React.FC = () => {
 
 const AppContent: React.FC = () => {
   const { isConnected } = useWeb3();
+  const [refreshGlobalTvl, setRefreshGlobalTvl] = useState(0);
+
+  const handleUnlock = () => {
+    setRefreshGlobalTvl((prev) => prev + 1);
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -239,7 +244,7 @@ const AppContent: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <TokenLocking />
+              <TokenLocking onUnlock={handleUnlock} />
               <div className="mt-4 mb-8 flex justify-center">
                 <img 
                   src={votingPowerImage} 
@@ -247,7 +252,7 @@ const AppContent: React.FC = () => {
                   className="max-w-2xl w-full rounded-lg shadow-lg"
                 />
               </div>
-              <TransactionHistory />
+              <TransactionHistory refreshGlobalTvl={refreshGlobalTvl} />
             </div>
           </div>
         )}

@@ -9,7 +9,11 @@ interface LockEntry {
   unlockRequestTime: ethers.BigNumber;
 }
 
-const TokenLocking: React.FC = () => {
+interface TokenLockingProps {
+  onUnlock?: () => void;
+}
+
+const TokenLocking: React.FC<TokenLockingProps> = ({ onUnlock }) => {
   const { account, contract, isConnected } = useWeb3();
   const [amount, setAmount] = useState<string>('');
   const [locks, setLocks] = useState<LockEntry[]>([]);
@@ -165,6 +169,7 @@ const TokenLocking: React.FC = () => {
         const decimals = await wxmToken.decimals();
         setBalance(ethers.utils.formatUnits(balance, decimals));
       }
+      if (onUnlock) onUnlock();
     } catch (err) {
       console.error('Error unlocking tokens:', err);
       setError('Failed to unlock tokens');
@@ -186,7 +191,7 @@ const TokenLocking: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-2">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Lock WXM Tokens</h2>
           
           <div className="mb-4">

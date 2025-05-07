@@ -40,7 +40,11 @@ const CONTRACT_ABI = [
   "function getTotalLocked() view returns (uint256)"
 ];
 
-const TransactionHistory: React.FC = () => {
+interface TransactionHistoryProps {
+  refreshGlobalTvl?: number;
+}
+
+const TransactionHistory: React.FC<TransactionHistoryProps> = ({ refreshGlobalTvl }) => {
   const { contract } = useWeb3();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [tvl, setTvl] = useState<string>('0');
@@ -311,7 +315,7 @@ const TransactionHistory: React.FC = () => {
     };
 
     fetchTransactions();
-  }, [contract]);
+  }, [contract, refreshGlobalTvl]);
 
   const formatGasPrice = (gasPrice: string) => {
     return ethers.utils.formatUnits(gasPrice, 'gwei') + ' Gwei';
