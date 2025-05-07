@@ -18,6 +18,29 @@ const TokenLocking: React.FC = () => {
   const [balance, setBalance] = useState<string>('0');
   const [wxmToken, setWxmToken] = useState<ethers.Contract | null>(null);
 
+  const calculateVotingPower = (wxmAmount: string): { baseVP: number; effectiveVP: number; multiplier: number } => {
+    const amount = parseFloat(wxmAmount);
+    if (isNaN(amount) || amount <= 0) return { baseVP: 0, effectiveVP: 0, multiplier: 1.0 };
+
+    const baseVP = amount / 20; // 20 WXM = 1 VP
+    let multiplier = 1.0;
+
+    if (amount >= 10000) {
+      multiplier = 1.5; // 50% bonus
+    } else if (amount >= 5000) {
+      multiplier = 1.25; // 25% bonus
+    } else if (amount >= 1000) {
+      multiplier = 1.1; // 10% bonus
+    }
+
+    const effectiveVP = baseVP * multiplier;
+    return {
+      baseVP: parseFloat(baseVP.toFixed(2)),
+      effectiveVP: parseFloat(effectiveVP.toFixed(2)),
+      multiplier
+    };
+  };
+
   useEffect(() => {
     const getWxmToken = async () => {
       if (!contract) return;
@@ -152,153 +175,9 @@ const TokenLocking: React.FC = () => {
 
   if (!isConnected) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-        <div className="max-w-4xl w-full space-y-8">
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">🌐 Governance Power Through Token Locking</h2>
-            <h3 className="text-xl font-semibold text-gray-700 mb-4">WeatherXM Association DAO Voting Framework</h3>
-            
-            <p className="text-gray-600 mb-6">
-              The WeatherXM Association enables decentralized governance by granting Voting Power (VP) to members who lock WXM tokens. 
-              The more tokens you commit, the more influence you gain.
-            </p>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <h4 className="text-lg font-semibold text-blue-800 mb-2">🔒 Lock WXM Tokens → Get Voting Power</h4>
-              <ul className="list-disc list-inside text-blue-700 space-y-2">
-                <li>20 WXM = 1 Voting Power (VP)</li>
-                <li>Tokens must be locked to gain VP. Locked tokens are non-transferable but grant enhanced voting rights.</li>
-              </ul>
-            </div>
-
-            <div className="mb-6">
-              <h4 className="text-lg font-semibold text-gray-800 mb-4">📊 Token-Based Multiplier Tiers</h4>
-              <p className="text-gray-600 mb-4">
-                To incentivize deeper commitment, Voting Power increases with larger token lock amounts through a progressive multiplier system:
-              </p>
-              
-              <div className="overflow-x-auto">
-                <table className="min-w-full bg-white border border-gray-200 rounded-lg">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Tokens Locked</th>
-                      <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Base VP</th>
-                      <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Multiplier</th>
-                      <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Effective VP</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    <tr>
-                      <td className="px-4 py-2 text-sm text-gray-600">100 – 999 WXM</td>
-                      <td className="px-4 py-2 text-sm text-gray-600">5–49.95 VP</td>
-                      <td className="px-4 py-2 text-sm text-gray-600">1.0x</td>
-                      <td className="px-4 py-2 text-sm text-gray-600">Same as base</td>
-                    </tr>
-                    <tr>
-                      <td className="px-4 py-2 text-sm text-gray-600">1,000 – 4,999 WXM</td>
-                      <td className="px-4 py-2 text-sm text-gray-600">50–249.95 VP</td>
-                      <td className="px-4 py-2 text-sm text-gray-600">1.1x</td>
-                      <td className="px-4 py-2 text-sm text-gray-600">+10% bonus</td>
-                    </tr>
-                    <tr>
-                      <td className="px-4 py-2 text-sm text-gray-600">5,000 – 9,999 WXM</td>
-                      <td className="px-4 py-2 text-sm text-gray-600">250–499.95 VP</td>
-                      <td className="px-4 py-2 text-sm text-gray-600">1.25x</td>
-                      <td className="px-4 py-2 text-sm text-gray-600">+25% bonus</td>
-                    </tr>
-                    <tr>
-                      <td className="px-4 py-2 text-sm text-gray-600">10,000+ WXM</td>
-                      <td className="px-4 py-2 text-sm text-gray-600">500+ VP</td>
-                      <td className="px-4 py-2 text-sm text-gray-600">1.5x</td>
-                      <td className="px-4 py-2 text-sm text-gray-600">+50% bonus</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <h4 className="text-lg font-semibold text-gray-800 mb-4">📈 Voting Power Infographic</h4>
-              <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <div className="flex flex-col items-center space-y-4">
-                  <div className="w-full max-w-2xl">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-600">100 WXM</span>
-                      <span className="text-sm font-medium text-gray-600">10,000+ WXM</span>
-                    </div>
-                    <div className="relative h-8 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="absolute inset-0 flex">
-                        <div className="w-1/4 bg-blue-200"></div>
-                        <div className="w-1/4 bg-blue-300"></div>
-                        <div className="w-1/4 bg-blue-400"></div>
-                        <div className="w-1/4 bg-blue-500"></div>
-                      </div>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="flex space-x-4">
-                          <span className="text-xs font-medium text-gray-700">1.0x</span>
-                          <span className="text-xs font-medium text-gray-700">1.1x</span>
-                          <span className="text-xs font-medium text-gray-700">1.25x</span>
-                          <span className="text-xs font-medium text-gray-700">1.5x</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 w-full max-w-2xl">
-                    <div className="bg-blue-50 p-4 rounded-lg">
-                      <h5 className="font-medium text-blue-800 mb-2">Small Lock</h5>
-                      <p className="text-sm text-blue-600">100-999 WXM</p>
-                      <p className="text-sm text-blue-600">Base VP (1.0x)</p>
-                    </div>
-                    <div className="bg-blue-100 p-4 rounded-lg">
-                      <h5 className="font-medium text-blue-800 mb-2">Medium Lock</h5>
-                      <p className="text-sm text-blue-600">1,000-4,999 WXM</p>
-                      <p className="text-sm text-blue-600">+10% VP (1.1x)</p>
-                    </div>
-                    <div className="bg-blue-200 p-4 rounded-lg">
-                      <h5 className="font-medium text-blue-800 mb-2">Large Lock</h5>
-                      <p className="text-sm text-blue-600">5,000-9,999 WXM</p>
-                      <p className="text-sm text-blue-600">+25% VP (1.25x)</p>
-                    </div>
-                    <div className="bg-blue-300 p-4 rounded-lg">
-                      <h5 className="font-medium text-blue-800 mb-2">Mega Lock</h5>
-                      <p className="text-sm text-blue-600">10,000+ WXM</p>
-                      <p className="text-sm text-blue-600">+50% VP (1.5x)</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h4 className="text-lg font-semibold text-green-800 mb-2">📝 Examples</h4>
-              <div className="space-y-4">
-                <div>
-                  <p className="text-green-700 font-medium">Alice locks 1,000 WXM</p>
-                  <ul className="list-disc list-inside text-green-600 ml-4">
-                    <li>Base VP = 50</li>
-                    <li>Multiplier = 1.1x</li>
-                    <li>Effective VP = 55</li>
-                  </ul>
-                </div>
-                <div>
-                  <p className="text-green-700 font-medium">Bob locks 10,000 WXM</p>
-                  <ul className="list-disc list-inside text-green-600 ml-4">
-                    <li>Base VP = 500</li>
-                    <li>Multiplier = 1.5x</li>
-                    <li>Effective VP = 750</li>
-                  </ul>
-                </div>
-              </div>
-              <p className="text-green-700 mt-4">
-                This system ensures that those who commit more WXM to the DAO gain proportionally more voting influence, 
-                making the protocol more robust and aligned with its most active supporters.
-              </p>
-            </div>
-          </div>
-
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Please connect your wallet</h2>
-          </div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Please connect your wallet</h2>
         </div>
       </div>
     );
@@ -336,6 +215,23 @@ const TokenLocking: React.FC = () => {
               Lock Tokens
             </button>
           </div>
+
+          {amount && (
+            <div className="bg-gray-50 p-4 rounded-lg mb-6">
+              <h4 className="text-lg font-semibold text-gray-900 mb-2">Voting Power Calculation</h4>
+              <div className="space-y-2">
+                <p className="text-gray-600">
+                  Base VP: {calculateVotingPower(amount).baseVP} VP
+                </p>
+                <p className="text-gray-600">
+                  Multiplier: {calculateVotingPower(amount).multiplier}x
+                </p>
+                <p className="text-lg font-semibold text-blue-600">
+                  Effective VP: {calculateVotingPower(amount).effectiveVP} VP
+                </p>
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
