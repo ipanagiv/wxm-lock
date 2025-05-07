@@ -5,6 +5,7 @@ import TransactionHistory from './components/TransactionHistory';
 import TokenPrice from './components/TokenPrice';
 import { LockClosedIcon, ArrowPathIcon, ShieldCheckIcon, ClockIcon } from '@heroicons/react/24/outline';
 import './App.css';
+import votingPowerImage from './images/voting-power.png';
 
 const WelcomeSection: React.FC = () => {
   const { connectWallet } = useWeb3();
@@ -29,6 +30,8 @@ const WelcomeSection: React.FC = () => {
               • 20 WXM = 1 Voting Power (VP)
               <br />
               • Tokens must be locked to gain VP. Locked tokens are non-transferable but grant enhanced voting rights.
+              <br />
+              • You can request an unlock after 24 hours of locking your tokens.
             </p>
           </div>
 
@@ -58,10 +61,10 @@ const WelcomeSection: React.FC = () => {
                     <td className="px-4 py-3 text-sm text-gray-600">0 VP</td>
                   </tr>
                   <tr>
-                    <td className="px-4 py-3 text-sm text-gray-900">20 – 999 WXM</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">1–49.95 VP</td>
+                    <td className="px-4 py-3 text-sm text-gray-900">21 – 999 WXM</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">1.05–49.95 VP</td>
                     <td className="px-4 py-3 text-sm text-gray-600">1.0x</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">1–49.95 VP</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">1.05–49.95 VP</td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 text-sm text-gray-900">1,000 – 4,999 WXM</td>
@@ -177,6 +180,8 @@ const AppContent: React.FC = () => {
                       • 20 WXM = 1 Voting Power (VP)
                       <br />
                       • Tokens must be locked to gain VP. Locked tokens are non-transferable but grant enhanced voting rights.
+                      <br />
+                      • You can request an unlock after 24 hours of locking your tokens.
                     </p>
                   </div>
                   <div>
@@ -202,10 +207,10 @@ const AppContent: React.FC = () => {
                             <td className="px-4 py-3 text-sm text-gray-600">0 VP</td>
                           </tr>
                           <tr>
-                            <td className="px-4 py-3 text-sm text-gray-900">20 – 999 WXM</td>
-                            <td className="px-4 py-3 text-sm text-gray-600">1–49.95 VP</td>
+                            <td className="px-4 py-3 text-sm text-gray-900">21 – 999 WXM</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">1.05–49.95 VP</td>
                             <td className="px-4 py-3 text-sm text-gray-600">1.0x</td>
-                            <td className="px-4 py-3 text-sm text-gray-600">1–49.95 VP</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">1.05–49.95 VP</td>
                           </tr>
                           <tr>
                             <td className="px-4 py-3 text-sm text-gray-900">1,000 – 4,999 WXM</td>
@@ -235,6 +240,13 @@ const AppContent: React.FC = () => {
                 </div>
               </div>
               <TokenLocking />
+              <div className="mt-4 mb-8 flex justify-center">
+                <img 
+                  src={votingPowerImage} 
+                  alt="Governance Power" 
+                  className="max-w-2xl w-full rounded-lg shadow-lg"
+                />
+              </div>
               <TransactionHistory />
             </div>
           </div>
