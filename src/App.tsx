@@ -13,7 +13,7 @@ const WelcomeSection: React.FC = () => {
     <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">WXM Token Locker</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">🌐 Governance Power Through Token Locking</h1>
           <p className="text-xl text-gray-600">Lock your WXM tokens securely on Arbitrum</p>
         </div>
 
@@ -101,7 +101,7 @@ const AppContent: React.FC = () => {
     <div className="min-h-screen bg-gray-100">
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">WXM Token Locker</h1>
+          <h1 className="text-2xl font-bold text-gray-900">🌐 Governance Power Through Token Locking</h1>
           <WalletButton />
         </div>
       </header>
