@@ -21,14 +21,14 @@ const WelcomeSection: React.FC = () => {
           <div className="bg-white p-6 rounded-lg shadow-lg">
             <div className="flex items-center mb-4">
               <LockClosedIcon className="h-8 w-8 text-blue-500 mr-3" />
-              <h3 className="text-xl font-semibold text-gray-900">🔒 Lock Tokens, Gain Voting Power</h3>
+              <h3 className="text-xl font-semibold text-gray-900">🔒 Lock WXM Tokens → Get Voting Power</h3>
             </div>
             <p className="text-gray-600">
               Members can lock WXM tokens to gain Voting Power, which directly affects the weight of their votes in <a href="https://snapshot.box/#/s:weatherxm.eth" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">Snapshot proposals</a>.
               <br /><br />
-              • 20 WXM tokens = 1 Voting Power (VP)
+              • 20 WXM = 1 Voting Power (VP)
               <br />
-              • Locked tokens are non-transferable for the duration of the lock period, reinforcing long-term alignment with the protocol's success.
+              • Tokens must be locked to gain VP. Locked tokens are non-transferable but grant enhanced voting rights.
             </p>
           </div>
 
@@ -38,15 +38,54 @@ const WelcomeSection: React.FC = () => {
               <h3 className="text-xl font-semibold text-gray-900">📊 Token-Based Multiplier Tiers</h3>
             </div>
             <p className="text-gray-600">
-              To incentivize deeper commitment, Voting Power increases with larger token lock amounts through a progressive multiplier system:
-              <br /><br />
-              • 100 – 999 WXM: 5–49.95 VP (1.0x multiplier)
-              <br />
-              • 1,000 – 4,999 WXM: 50–249.95 VP (1.1x multiplier, +10% bonus)
-              <br />
-              • 5,000 – 9,999 WXM: 250–499.95 VP (1.25x multiplier, +25% bonus)
-              <br />
-              • 10,000+ WXM: 500+ VP (1.5x multiplier, +50% bonus)
+              Voting Power increases with larger token lock amounts through a progressive multiplier system.
+            </p>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tokens Locked</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Base VP</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Multiplier</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Effective VP</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  <tr>
+                    <td className="px-4 py-3 text-sm text-gray-900">0 – 20 WXM</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">0 VP</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">1.0x</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">0 VP</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 text-sm text-gray-900">20 – 999 WXM</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">1–49.95 VP</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">1.0x</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">1–49.95 VP</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 text-sm text-gray-900">1,000 – 4,999 WXM</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">50–249.95 VP</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">1.1x (+10% bonus)</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">55–274.95 VP</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 text-sm text-gray-900">5,000 – 9,999 WXM</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">250–499.95 VP</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">1.25x (+25% bonus)</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">312.5–624.94 VP</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 text-sm text-gray-900">10,000+ WXM</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">500+ VP</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">1.5x (+50% bonus)</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">750+ VP</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-4 text-gray-600">
+              This system ensures that those who commit more WXM to the DAO gain proportionally more voting influence, making the protocol more robust and aligned with its most active supporters.
             </p>
           </div>
 
@@ -131,27 +170,66 @@ const AppContent: React.FC = () => {
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">🔒 Lock Tokens, Gain Voting Power</h3>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">🔒 Lock WXM Tokens → Get Voting Power</h3>
                     <p className="text-gray-600">
                       Members can lock WXM tokens to gain Voting Power, which directly affects the weight of their votes in <a href="https://snapshot.box/#/s:weatherxm.eth" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">Snapshot proposals</a>.
                       <br /><br />
-                      • 20 WXM tokens = 1 Voting Power (VP)
+                      • 20 WXM = 1 Voting Power (VP)
                       <br />
-                      • Locked tokens are non-transferable for the duration of the lock period, reinforcing long-term alignment with the protocol's success.
+                      • Tokens must be locked to gain VP. Locked tokens are non-transferable but grant enhanced voting rights.
                     </p>
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">📊 Token-Based Multiplier Tiers</h3>
                     <p className="text-gray-600">
-                      To incentivize deeper commitment, Voting Power increases with larger token lock amounts through a progressive multiplier system:
-                      <br /><br />
-                      • 100 – 999 WXM: 5–49.95 VP (1.0x multiplier)
-                      <br />
-                      • 1,000 – 4,999 WXM: 50–249.95 VP (1.1x multiplier, +10% bonus)
-                      <br />
-                      • 5,000 – 9,999 WXM: 250–499.95 VP (1.25x multiplier, +25% bonus)
-                      <br />
-                      • 10,000+ WXM: 500+ VP (1.5x multiplier, +50% bonus)
+                      Voting Power increases with larger token lock amounts through a progressive multiplier system.
+                    </p>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tokens Locked</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Base VP</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Multiplier</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Effective VP</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          <tr>
+                            <td className="px-4 py-3 text-sm text-gray-900">0 – 20 WXM</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">0 VP</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">1.0x</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">0 VP</td>
+                          </tr>
+                          <tr>
+                            <td className="px-4 py-3 text-sm text-gray-900">20 – 999 WXM</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">1–49.95 VP</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">1.0x</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">1–49.95 VP</td>
+                          </tr>
+                          <tr>
+                            <td className="px-4 py-3 text-sm text-gray-900">1,000 – 4,999 WXM</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">50–249.95 VP</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">1.1x (+10% bonus)</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">55–274.95 VP</td>
+                          </tr>
+                          <tr>
+                            <td className="px-4 py-3 text-sm text-gray-900">5,000 – 9,999 WXM</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">250–499.95 VP</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">1.25x (+25% bonus)</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">312.5–624.94 VP</td>
+                          </tr>
+                          <tr>
+                            <td className="px-4 py-3 text-sm text-gray-900">10,000+ WXM</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">500+ VP</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">1.5x (+50% bonus)</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">750+ VP</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <p className="mt-4 text-gray-600">
+                      This system ensures that those who commit more WXM to the DAO gain proportionally more voting influence, making the protocol more robust and aligned with its most active supporters.
                     </p>
                   </div>
                 </div>
