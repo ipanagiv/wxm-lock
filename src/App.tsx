@@ -24,7 +24,7 @@ const WelcomeSection: React.FC = () => {
               <h3 className="text-xl font-semibold text-gray-900">🔒 Lock Tokens, Gain Voting Power</h3>
             </div>
             <p className="text-gray-600">
-              Members can lock WXM tokens to gain Voting Power, which directly affects the weight of their votes in Snapshot proposals.
+              Members can lock WXM tokens to gain Voting Power, which directly affects the weight of their votes in <a href="https://snapshot.box/#/s:weatherxm.eth" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">Snapshot proposals</a>.
               <br /><br />
               • 20 WXM tokens = 1 Voting Power (VP)
               <br />
@@ -133,7 +133,7 @@ const AppContent: React.FC = () => {
                   <div>
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">🔒 Lock Tokens, Gain Voting Power</h3>
                     <p className="text-gray-600">
-                      Members can lock WXM tokens to gain Voting Power, which directly affects the weight of their votes in Snapshot proposals.
+                      Members can lock WXM tokens to gain Voting Power, which directly affects the weight of their votes in <a href="https://snapshot.box/#/s:weatherxm.eth" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">Snapshot proposals</a>.
                       <br /><br />
                       • 20 WXM tokens = 1 Voting Power (VP)
                       <br />
