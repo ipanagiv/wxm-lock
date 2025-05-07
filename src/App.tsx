@@ -35,18 +35,18 @@ const WelcomeSection: React.FC = () => {
           <div className="bg-white p-6 rounded-lg shadow-lg">
             <div className="flex items-center mb-4">
               <ClockIcon className="h-8 w-8 text-yellow-500 mr-3" />
-              <h3 className="text-xl font-semibold text-gray-900">📈 Optional Multiplier Mechanism</h3>
+              <h3 className="text-xl font-semibold text-gray-900">📊 Token-Based Multiplier Tiers</h3>
             </div>
             <p className="text-gray-600">
-              To reward deeper commitment, the DAO can optionally apply time-based multipliers to voting power:
+              To incentivize deeper commitment, Voting Power increases with larger token lock amounts through a progressive multiplier system:
               <br /><br />
-              • 1 month: 1x
+              • 100 – 999 WXM: 5–49.95 VP (1.0x multiplier)
               <br />
-              • 3 months: 1.25x
+              • 1,000 – 4,999 WXM: 50–249.95 VP (1.1x multiplier, +10% bonus)
               <br />
-              • 6 months: 1.5x
+              • 5,000 – 9,999 WXM: 250–499.95 VP (1.25x multiplier, +25% bonus)
               <br />
-              • 12 months: 2x
+              • 10,000+ WXM: 500+ VP (1.5x multiplier, +50% bonus)
             </p>
           </div>
 
@@ -141,17 +141,17 @@ const AppContent: React.FC = () => {
                     </p>
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">📈 Optional Multiplier Mechanism</h3>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">📊 Token-Based Multiplier Tiers</h3>
                     <p className="text-gray-600">
-                      To reward deeper commitment, the DAO can optionally apply time-based multipliers to voting power:
+                      To incentivize deeper commitment, Voting Power increases with larger token lock amounts through a progressive multiplier system:
                       <br /><br />
-                      • 1 month: 1x
+                      • 100 – 999 WXM: 5–49.95 VP (1.0x multiplier)
                       <br />
-                      • 3 months: 1.25x
+                      • 1,000 – 4,999 WXM: 50–249.95 VP (1.1x multiplier, +10% bonus)
                       <br />
-                      • 6 months: 1.5x
+                      • 5,000 – 9,999 WXM: 250–499.95 VP (1.25x multiplier, +25% bonus)
                       <br />
-                      • 12 months: 2x
+                      • 10,000+ WXM: 500+ VP (1.5x multiplier, +50% bonus)
                     </p>
                   </div>
                 </div>
