@@ -124,6 +124,38 @@ const AppContent: React.FC = () => {
         ) : (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="space-y-8">
+              <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Welcome to WXM Token Locking</h2>
+                <p className="text-gray-600 mb-4">
+                  To empower a more decentralized and merit-based governance model, the WeatherXM Association introduces Voting Power (VP) — a mechanism that aligns governance influence with long-term commitment to the network.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">🔒 Lock Tokens, Gain Voting Power</h3>
+                    <p className="text-gray-600">
+                      Members can lock WXM tokens to gain Voting Power, which directly affects the weight of their votes in Snapshot proposals.
+                      <br /><br />
+                      • 20 WXM tokens = 1 Voting Power (VP)
+                      <br />
+                      • Locked tokens are non-transferable for the duration of the lock period, reinforcing long-term alignment with the protocol's success.
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">📈 Optional Multiplier Mechanism</h3>
+                    <p className="text-gray-600">
+                      To reward deeper commitment, the DAO can optionally apply time-based multipliers to voting power:
+                      <br /><br />
+                      • 1 month: 1x
+                      <br />
+                      • 3 months: 1.25x
+                      <br />
+                      • 6 months: 1.5x
+                      <br />
+                      • 12 months: 2x
+                    </p>
+                  </div>
+                </div>
+              </div>
               <TokenLocking />
               <TransactionHistory />
             </div>
