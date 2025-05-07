@@ -192,7 +192,7 @@ const TransactionHistory: React.FC = () => {
 
   const fetchTvl = async (txs: Transaction[]) => {
     try {
-      // Calculate total WXM locked
+      // Calculate total WXM locked from transactions
       const totalLocked = calculateTVL(txs);
       const totalLockedFormatted = ethers.utils.formatEther(totalLocked);
       setTvl(totalLockedFormatted);
@@ -344,6 +344,32 @@ const TransactionHistory: React.FC = () => {
     }
   };
 
+  const calculateVotingPower = (amount: ethers.BigNumber): { baseVP: number; effectiveVP: number } => {
+    const wxmAmount = parseFloat(ethers.utils.formatEther(amount));
+    let baseVP = 0;
+    let multiplier = 1.0;
+
+    // Calculate base VP (20 WXM = 1 VP)
+    if (wxmAmount >= 20) {
+      baseVP = wxmAmount / 20;
+    }
+
+    // Apply multiplier based on amount
+    if (wxmAmount >= 10000) {
+      multiplier = 1.5; // 50% bonus
+    } else if (wxmAmount >= 5000) {
+      multiplier = 1.25; // 25% bonus
+    } else if (wxmAmount >= 1000) {
+      multiplier = 1.1; // 10% bonus
+    }
+
+    const effectiveVP = baseVP * multiplier;
+    return {
+      baseVP: parseFloat(baseVP.toFixed(2)),
+      effectiveVP: parseFloat(effectiveVP.toFixed(2))
+    };
+  };
+
   if (apiError) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -379,7 +405,7 @@ const TransactionHistory: React.FC = () => {
         <h2 className="text-2xl font-bold text-gray-800">Latest Contract Interactions</h2>
         <div className="flex items-center space-x-4">
           <div className="text-right">
-            <p className="text-sm text-gray-600">Total Value Locked</p>
+            <p className="text-sm text-gray-600">Total WXM Locked</p>
             <p className="text-xl font-bold text-gray-900">{formatWXM(tvl)} WXM</p>
             <p className="text-sm text-gray-600">{tvlUsd}</p>
           </div>
@@ -429,6 +455,16 @@ const TransactionHistory: React.FC = () => {
                   <p className="text-gray-600 mt-2">
                     Amount: {ethers.utils.formatEther(tx.amount)} WXM
                   </p>
+                  {tx.type === 'lock' && (
+                    <p className="text-gray-600">
+                      Voting Power: {calculateVotingPower(tx.amount).effectiveVP} VP
+                      {calculateVotingPower(tx.amount).baseVP > 0 && (
+                        <span className="text-sm text-gray-500 ml-2">
+                          (Base: {calculateVotingPower(tx.amount).baseVP} VP)
+                        </span>
+                      )}
+                    </p>
+                  )}
                   <p className="text-gray-600">
                     <ClockIcon className="h-4 w-4 inline mr-1" />
                     {formatTimeAgo(tx.timestamp)}
