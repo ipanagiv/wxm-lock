@@ -21,40 +21,52 @@ const WelcomeSection: React.FC = () => {
           <div className="bg-white p-6 rounded-lg shadow-lg">
             <div className="flex items-center mb-4">
               <LockClosedIcon className="h-8 w-8 text-blue-500 mr-3" />
-              <h3 className="text-xl font-semibold text-gray-900">Secure Token Locking</h3>
+              <h3 className="text-xl font-semibold text-gray-900">🔒 Lock Tokens, Gain Voting Power</h3>
             </div>
             <p className="text-gray-600">
-              Lock your WXM tokens for a specified period with our secure smart contract on Arbitrum.
+              Members can lock WXM tokens to gain Voting Power, which directly affects the weight of their votes in Snapshot proposals.
+              <br /><br />
+              • 20 WXM tokens = 1 Voting Power (VP)
+              <br />
+              • Locked tokens are non-transferable for the duration of the lock period, reinforcing long-term alignment with the protocol's success.
             </p>
           </div>
 
           <div className="bg-white p-6 rounded-lg shadow-lg">
             <div className="flex items-center mb-4">
               <ClockIcon className="h-8 w-8 text-yellow-500 mr-3" />
-              <h3 className="text-xl font-semibold text-gray-900">Flexible Lock Periods</h3>
+              <h3 className="text-xl font-semibold text-gray-900">📈 Optional Multiplier Mechanism</h3>
             </div>
             <p className="text-gray-600">
-              Choose your lock duration and request unlocks when needed. Your tokens are always under your control.
+              To reward deeper commitment, the DAO can optionally apply time-based multipliers to voting power:
+              <br /><br />
+              • 1 month: 1x
+              <br />
+              • 3 months: 1.25x
+              <br />
+              • 6 months: 1.5x
+              <br />
+              • 12 months: 2x
             </p>
           </div>
 
           <div className="bg-white p-6 rounded-lg shadow-lg">
             <div className="flex items-center mb-4">
               <ShieldCheckIcon className="h-8 w-8 text-green-500 mr-3" />
-              <h3 className="text-xl font-semibold text-gray-900">Transparent & Secure</h3>
+              <h3 className="text-xl font-semibold text-gray-900">Decentralized Governance</h3>
             </div>
             <p className="text-gray-600">
-              All transactions are recorded on the blockchain. View your lock history and track your tokens.
+              To empower a more decentralized and merit-based governance model, the WeatherXM Association introduces Voting Power (VP) — a mechanism that aligns governance influence with long-term commitment to the network.
             </p>
           </div>
 
           <div className="bg-white p-6 rounded-lg shadow-lg">
             <div className="flex items-center mb-4">
               <ArrowPathIcon className="h-8 w-8 text-purple-500 mr-3" />
-              <h3 className="text-xl font-semibold text-gray-900">Real-time Updates</h3>
+              <h3 className="text-xl font-semibold text-gray-900">Enhanced Governance Incentive</h3>
             </div>
             <p className="text-gray-600">
-              Monitor your locked tokens, TVL, and transaction history in real-time.
+              The multiplier mechanism encourages long-term token holding and active participation in governance decisions, creating a more sustainable and aligned community.
             </p>
           </div>
         </div>
