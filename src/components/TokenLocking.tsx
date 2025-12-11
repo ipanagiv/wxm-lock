@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useWeb3 } from '../context/Web3Context';
 import { ethers } from 'ethers';
 import { LockClosedIcon, LockOpenIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
@@ -84,29 +84,29 @@ const TokenLocking: React.FC<TokenLockingProps> = ({ onUnlock }) => {
     fetchBalance();
   }, [wxmToken, account]);
 
-  const fetchLocks = async () => {
+  const fetchLocks = useCallback(async () => {
     if (!contract || !account) return;
     try {
       const locksCount = await contract.getLocksCount(account);
       const locksArray: LockEntry[] = [];
-      
+
       for (let i = 0; i < locksCount.toNumber(); i++) {
         const lock = await contract.getLock(account, i);
         locksArray.push(lock);
       }
-      
+
       setLocks(locksArray);
     } catch (err) {
       console.error('Error fetching locks:', err);
       setError('Failed to fetch locks');
     }
-  };
+  }, [contract, account]);
 
   useEffect(() => {
     if (isConnected) {
       fetchLocks();
     }
-  }, [isConnected, account]);
+  }, [isConnected, account, fetchLocks]);
 
   const handleLockTokens = async () => {
     if (!contract || !amount || !wxmToken) return;

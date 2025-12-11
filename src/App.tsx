@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Web3Provider, useWeb3 } from './context/Web3Context';
 import TokenLocking from './components/TokenLocking';
 import TransactionHistory from './components/TransactionHistory';
-import TokenPrice from './components/TokenPrice';
 import { LockClosedIcon, ArrowPathIcon, ShieldCheckIcon, ClockIcon } from '@heroicons/react/24/outline';
 import './App.css';
 import votingPowerImage from './images/voting-power.png';

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ethers } from 'ethers';
 import { useWeb3 } from '../context/Web3Context';
-import { ArrowTopRightOnSquareIcon, ClockIcon, ArrowTrendingUpIcon, CurrencyDollarIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { ArrowTopRightOnSquareIcon, ClockIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 
 interface Transaction {
   hash: string;
@@ -51,10 +51,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ refreshGlobalTv
   const [tvlUsd, setTvlUsd] = useState<string>('0');
   const [wxmPrice, setWxmPrice] = useState<string>('0');
   const [loading, setLoading] = useState(true);
-  const [lastBlock, setLastBlock] = useState<number>(0);
   const [lastPriceUpdate, setLastPriceUpdate] = useState<Date>(new Date());
-  const [priceLoading, setPriceLoading] = useState(false);
-  const [priceError, setPriceError] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -94,17 +91,14 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ refreshGlobalTv
     }
   };
 
-  const fetchWxmPrice = async () => {
+  const fetchWxmPrice = useCallback(async () => {
     try {
-      setPriceLoading(true);
-      setPriceError(null);
-      
       // Try CoinGecko first with the correct token ID
       try {
         const coingeckoResponse = await fetch(
           'https://api.coingecko.com/api/v3/simple/price?ids=weatherxm-network&vs_currencies=usd'
         );
-        
+
         if (coingeckoResponse.ok) {
           const coingeckoData = await coingeckoResponse.json();
           if (coingeckoData['weatherxm-network']?.usd) {
@@ -126,14 +120,14 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ refreshGlobalTv
       const arbiscanResponse = await fetch(
         `https://api.arbiscan.io/api?module=stats&action=tokenprice&contractaddress=0x0edf9bc41bbc1354c70e2107f80c42cae7fbbca8&apikey=${ARBISCAN_API_KEY}`
       );
-      
+
       if (!arbiscanResponse.ok) {
         const errorText = await arbiscanResponse.text();
         throw new Error(`Arbiscan API error: ${arbiscanResponse.status} - ${errorText}`);
       }
 
       const arbiscanData = await arbiscanResponse.json();
-      
+
       if (arbiscanData.status !== '1' || !arbiscanData.result?.ethusd) {
         throw new Error('Price data not available from either API');
       }
@@ -143,15 +137,10 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ refreshGlobalTv
       setLastPriceUpdate(new Date());
     } catch (err) {
       console.error('Error fetching WXM price:', err);
-      setPriceError(err instanceof Error ? err.message : 'Failed to fetch price');
       // Keep the last known price if available
-      if (!wxmPrice) {
-        setWxmPrice('0');
-      }
-    } finally {
-      setPriceLoading(false);
+      setWxmPrice((prevPrice) => prevPrice || '0');
     }
-  };
+  }, []);
 
   const calculateTVL = (txs: Transaction[]) => {
     try {
@@ -194,7 +183,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ refreshGlobalTv
     }
   };
 
-  const fetchTvl = async (txs: Transaction[]) => {
+  const fetchTvl = useCallback(async (txs: Transaction[]) => {
     try {
       // Calculate total WXM locked from transactions
       const totalLocked = calculateTVL(txs);
@@ -213,14 +202,14 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ refreshGlobalTv
       setTvl('0');
       setTvlUsd('0');
     }
-  };
+  }, [fetchWxmPrice, wxmPrice]);
 
   // Fetch WXM price every 5 minutes
   useEffect(() => {
     fetchWxmPrice();
     const interval = setInterval(fetchWxmPrice, PRICE_UPDATE_INTERVAL);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchWxmPrice]);
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -239,7 +228,6 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ refreshGlobalTv
         );
         const blockData = await blockResponse.json();
         const latestBlock = parseInt(blockData.result, 16);
-        setLastBlock(latestBlock);
 
         // Fetch all transactions for the contract
         const txResponse = await fetch(
@@ -315,7 +303,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ refreshGlobalTv
     };
 
     fetchTransactions();
-  }, [contract, refreshGlobalTvl]);
+  }, [contract, refreshGlobalTvl, fetchTvl]);
 
   const formatGasPrice = (gasPrice: string) => {
     return ethers.utils.formatUnits(gasPrice, 'gwei') + ' Gwei';
